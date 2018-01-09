@@ -33,12 +33,37 @@ CHANGES
 					//experiences value converting to HTML snippet
 					$profile['experiences_hierarchial'] = $this->system_fields->industries_hierarchical_list($profile['experience']);
 					....
-					->append_css('module::/../../network_settings/css/system_fields_industries_multilevel_list.css')
-					->append_js('module::/../../network_settings/js/system_fields_industries_multilevel_list.js')
+					->append_css('module::/../../network_settings/css/system_fields_industries_public.css')
+					->append_js('module::/../../network_settings/js/system_fields_industries_list.js')
 		
-		
-			ADDED NEW FUNCTIONS: 
+			ADDED CODE:
 			
+				//inside function save_work
+			
+					....
+					$this->load->controller('system_fields', 'network_settings');
+					....
+					$experience = $this->profile_m->get_profile_field_value($uid, 'experience');
+					....
+					$data = array(
+							....
+							'industries' => $this->system_fields_m->get_industry_types_for_list(),
+							'industries_selected' => $this->system_fields_m->get_industry_ids_from_value($experience),				
+							....
+					);				
+		
+			ADDED CODE: 
+		
+				//inside function edit_work
+		
+					//Save experiences
+					$this->load->controller('system_fields', 'network_settings');			
+					$experiences = $this->system_fields_m->get_industry_db_value_from_ids($this->input->post('industries'));		
+					$db_action = $this->profile_m->update($uid, array('experience' => $experiences));
+	
+	
+			ADDED CODE new function edit_experience
+	
 				public function edit_experience($uid)
 				{
 					if( ! $this->input->is_ajax_request())  
@@ -65,10 +90,10 @@ CHANGES
 					}
 						
 				}//END function edit_experience
-
-				
-				
-				
+	
+	
+			ADDED CODE new function save_experience
+	
 				public function save_experience($uid)
 				{
 					if( ! $this->input->is_ajax_request())  
@@ -97,7 +122,28 @@ CHANGES
 							$this->template->build_json($response);
 						}			
 					}
-				}//END function save_experience					
+				}//END function save_experience	
+	
+	
+	
+	
+		\network-site\addons\default\modules\institutions\helpers\institutions_helper.php
+	
+			CHANGED CODE:
+			
+				FROM: function form_institution($name, $value = null)	TO:	function form_institution($name, $value = null, $settings = array())
+	
+	
+	
+	
+		\network-site\addons\default\modules\institutions\views\input.php
+	
+			CHANGED CODE: 
+	
+				FROM: <input type="text" id="<?=$name ?>" value="<?=(!empty($institution)) ? $institution->fullname : '' ?>" autocomplete="off" />	
+				
+				TO:	<input type="text" id="<?=$name ?>" value="<?=(!empty($institution)) ? $institution->fullname : '' ?>" autocomplete="off" <?php echo isset($settings['style']) ? ' style="' . $settings['style'] . '"' : "" ?> /> 
+	
 	
 	
 		\network-site\addons\default\modules\bbusers\models\profile_m.php
@@ -257,6 +303,10 @@ CHANGES
 				->set('industry_types', $industry_types)
 				->set('industries_selected', $industries_selected)
 				->set('industries_offline_selected', $industries_offline_selected)
+				.....
+				->append_js('module::system_fields_industries_list.js')
+				->append_css('module::system_fields_industries_admin.css')
+				
 				 
 		
 		\network-site\addons\default\modules\network_settings\views\members\custom_questions.php
@@ -288,47 +338,54 @@ CHANGES
 		
 			ADDED CODE: //a new function to load controller into another controller
 			
-						/*
-						 * Load controller (from addons/default/modules or addons/shared_addons/modules) into another controller
-						 *
-						 * @input 
-						 *		- $controller: string : name of the controller without extension_loaded / or array with  class_names without extensions
-						 *		- $module: string : default = '', name of the addons or shared addons module 
-						 *
-						 * @output
-						 *		VOID
-						*/
-						public function controller($controller, $module = '', $sub_folder = '')
+				/*
+				 * Load controller (from addons/default/modules or addons/shared_addons/modules) into another controller
+				 *
+				 * @input 
+				 *		- $controller: string : name of the controller without extension_loaded / or array with  class_names without extensions
+				 *		- $module: string : default = '', name of the addons or shared addons module 
+				 *		- $paths: array : paths to the modules folder, not required
+				 *
+				 * @output
+				 *		VOID
+				*/
+				public function controller($controller, $module = '', $paths = array())
+				{
+					if (in_array($controller, $this->_ci_controllers, true)) return CI::$APP->$controller;
+					
+					if ($module == '') $module = $this->_module;
+					
+					if ( empty($paths) ) {
+						$paths = array(ADDON_FOLDER . 'default/modules/', SHARED_ADDONPATH . 'modules/');
+					}
+					
+					//Check controller exists in module
+					foreach ($paths as $path)
+					{
+						$path = $path . $module . '/controllers/';
+
+						if (file_exists($path . $controller . '.php'))
 						{
-							if (in_array($controller, $this->_ci_controllers, true)) return CI::$APP->$controller;
-							
-							if ($module == '') $module = $this->_module;
-							
-							//Check controller exists in module
-							foreach (array(ADDON_FOLDER . 'default/modules/', SHARED_ADDONPATH . 'modules/') as $path)
+							if (class_exists($controller) === FALSE)
 							{
-								$path = $path . $module . '/controllers/';
-
-								if (file_exists($path . $controller . '.php'))
-								{
-									if (class_exists($controller) === FALSE)
-									{
-										Modules::load_file($controller, $path);
-										
-										$uf_controller = ucfirst($controller);
-										
-										CI::$APP->$controller = new $uf_controller();
-										
-										$this->_ci_controllers[] = $controller;
-									
-										return CI::$APP->$controller;
-									}
-								}
+								Modules::load_file($controller, $path);
+								
+								$uf_controller = ucfirst($controller);
+								
+								CI::$APP->$controller = new $uf_controller();
+								
+								$this->_ci_controllers[] = $controller;
+							
+								return CI::$APP->$controller;
 							}
+						}
+					}
 
-							return false;
-						}//END function &controller
+					return false;
+				}//END function &controller
 						
+	
+	
 	
 		\network-site\addons\default\modules\network_settings\views\members\tables\questions.php
 		
@@ -390,115 +447,112 @@ CHANGES
 
 				if ( ! function_exists('form_dropdown_list'))
 				{
-					/**
-					 * Create an ul/ol multiselect/"multilevel" list
-					 *
-					 * @input
-					 *		- $element: string : HTML DOM element's jqeury selector/id/name
-					 *		- $list: mixed array : can be empty, otherwise must be a multidimensional array - its structure is:
-					 *				array(
-					 *					array('value' => :string, 'level' => :int, 'id' => :int, 'class' => :string - css class name, 'extra' => :string - any kind of other settings, can be empty),
-					 * 					...
-					 *				)
-					 *		- $list_selected: mixed array : id's of selected values 
-					 *		- $settings: mixed array : can be an empty array, next settings are available
-					 *				array(
-					 *					multiselect_group_class		: string, default - multilevel-multiselect-group
-					 *					multiselect_button_class	: string, default - multilevel btn btn-default
-					 *					multiselect_span_class 		: string, default - multilevel-selected-text
-					 * 					multiselect_list_class		: string, default - multilevel-container dropdown-menu	
-					 *					list_type:					: string, default - ul - can be ol or ul
-					 *					max_display_selected		: int, default - 3
-					 *					default_button_text			: string, default - 'Select all that apply'
-					 *				)			
-					 *
-					 */
-					function form_dropdown_list($element, $list = array(), $list_selected = array(), $settings = array())
-					{
-						//Init
-						$line_break = "\n";
-						$multiselect_group_class = isset($settings['multiselect_group_class']) ? $settings['multiselect_group_class'] : 'multilevel-multiselect-group';
-						$multiselect_button_class = isset($settings['multiselect_button_class']) ? $settings['multiselect_button_class'] : 'multilevel btn btn-default';
-						$multiselect_span_class = isset($settings['multiselect_span_class']) ? $settings['multiselect_span_class'] : 'multilevel-selected-text';
-						$multiselect_list_class = isset($settings['multiselect_list_class']) ? $settings['multiselect_list_class'] : 'multilevel-container dropdown-menu';
-						$list_type = isset($settings['list_type']) ? $settings['list_type'] : 'ul';
-						$max_display_selected = isset($settings['max_display_selected']) ? $settings['max_display_selected'] : 3;
-						$default_button_text = isset($settings['default_button_text']) ? $settings['default_button_text'] : 'Select all that apply';
-						$theme_colour = Settings::get('theme_colour');
-						$icon_ok = '<span class="glyphicon glyphicon-ok"></span>';
-						$icon_menu_up = '<span class="glyphicon glyphicon-menu-up"></span>';
-						$icon_menu_down = '<span class="glyphicon glyphicon-menu-down"></span>';
-						
-						//create a ul/ol list container
-						$list_pre = '<div name="' . $element . '_list" id="' . $element . '_list" class="' . $multiselect_group_class . '">' . $line_break . 
-									'	<button type="button" class="' . $multiselect_button_class . '" title="%selected_values_text">' . $line_break . 
-									'		<span class="glyphicon glyphicon-triangle-bottom"></span> ' . $line_break . 
-									'		<span class="glyphicon glyphicon-triangle-top"></span> ' . $line_break . 
-									'		<span class="selected_values">%selected_values_text</span>' . $line_break . 
-									'	</button>' . $line_break . 
-									'	<' . $list_type . ' class="' . $multiselect_list_class . '">' . $line_break;    
-									
-						//create the list
-						$list_content = '';
-						$selected_values = array();
-						$selected_ids = array();
-						$selected_counter = 0;
-						$orig_list = $list;
-						$length = count($list);
-						foreach ($list as $key => $params)
-						{			
-							//set main-menu arrow
-							$arrows = ($params['children'] > 0) ? $icon_menu_up . $icon_menu_down : '';
+						/**
+						 * Create an ul/ol multiselect/"multilevel" list
+						 *
+						 * @input
+						 *		- $element: string : HTML DOM element's jqeury selector/id/name
+						 *		- $list: mixed array : can be empty, otherwise must be a multidimensional array - its structure is:
+						 *				array(
+						 *					array('value' => :string, 'level' => :int, 'id' => :int, 'class' => :string - css class name, 'extra' => :string - any kind of other settings, can be empty),
+						 * 					...
+						 *				)
+						 *		- $list_selected: mixed array : id's of selected values 
+						 *		- $settings: mixed array : can be an empty array, next settings are available
+						 *				array(
+						 *					multiselect_group_class		: string, default - multilevel-multiselect-group
+						 *					multiselect_button_class	: string, default - multilevel btn btn-default
+						 *					multiselect_span_class 		: string, default - multilevel-selected-text
+						 * 					multiselect_list_class		: string, default - multilevel-container dropdown-menu	
+						 *					list_type:					: string, default - ul - can be ol or ul
+						 *					max_display_selected		: int, default - 3
+						 *					default_button_text			: string, default - 'Select all that apply'
+						 *				)			
+						 *
+						 */
+						function form_dropdown_list($element, $list = array(), $list_selected = array(), $settings = array())
+						{
+							//Init
+							$line_break = "\n";
+							$multiselect_group_class = isset($settings['multiselect_group_class']) ? $settings['multiselect_group_class'] : 'multilevel-multiselect-group';
+							$multiselect_button_class = isset($settings['multiselect_button_class']) ? $settings['multiselect_button_class'] : 'multilevel btn btn-default';
+							$multiselect_span_class = isset($settings['multiselect_span_class']) ? $settings['multiselect_span_class'] : 'multilevel-selected-text';
+							$multiselect_list_class = isset($settings['multiselect_list_class']) ? $settings['multiselect_list_class'] : 'multilevel-container dropdown-menu';
+							$list_type = isset($settings['list_type']) ? $settings['list_type'] : 'ul';
+							$max_display_selected = isset($settings['max_display_selected']) ? $settings['max_display_selected'] : 3;
+							$default_button_text = isset($settings['default_button_text']) ? $settings['default_button_text'] : 'Select all that apply';
+							$theme_colour = Settings::get('theme_colour');
+							$glyph_icon_ok = '<span class="glyphicon glyphicon-ok"></span>';
+							$glyph_icon_bottom = '<div><span class="glyphicon glyphicon-triangle-bottom menu"></span>';
+							$glyph_icon_top = '<span class="glyphicon glyphicon-triangle-top menu"></span></div>';
 							
-							//if the list item is selected
-							$sub_selected_text = '';
-							if (in_array($params['id'], $list_selected)) {
-								$selected_class = 'selected ' . (($params['parent_id'] == 0) ? 'seperatly-selected ' : '');
-								$selected_values[] = $params['value'];
-								$selected_ids[] = $params['id']; 
-								$selected_counter++;
-								if ($params['level'] == 1) {
-									$sub_selected = 0;
-									for ($i = 0; $i < $length; $i++) {
-										if ($orig_list[$i]['parent_id'] == $params['id'] and in_array($orig_list[$i]['id'], $list_selected)) $sub_selected++;	
+							//create a ul/ol list container
+							$list_pre = '<div name="' . $element . '_list" id="' . $element . '_list" class="' . $multiselect_group_class . '">' . $line_break . 
+										'	<button type="button" class="' . $multiselect_button_class . '" title="%selected_values_text">' . $line_break . 
+										'		<span class="selected_values">%selected_values_text</span>' . $line_break . 
+													$glyph_icon_bottom . $line_break . 
+													$glyph_icon_top . $line_break . 
+										'	</button>' . $line_break . 
+										'	<' . $list_type . ' class="' . $multiselect_list_class . '">' . $line_break;    
+										
+							//create the list
+							$list_content = '';
+							$selected_values = array();
+							$selected_ids = array();
+							$selected_counter = 0;
+							$orig_list = $list;
+							$length = count($list);
+							foreach ($list as $key => $params)
+							{			
+								//if the list item is selected
+								$sub_selected_text = '';
+								if (in_array($params['id'], $list_selected)) {
+									$selected_class = 'selected ' . (($params['parent_id'] == 0) ? 'seperatly-selected ' : '');
+									$selected_values[] = $params['value'];
+									$selected_ids[] = $params['id']; 
+									$selected_counter++;
+									if ($params['level'] == 1) {
+										$sub_selected = 0;
+										for ($i = 0; $i < $length; $i++) {
+											if ($orig_list[$i]['parent_id'] == $params['id'] and in_array($orig_list[$i]['id'], $list_selected)) $sub_selected++;	
+										}
+										if ($sub_selected > 0) $sub_selected_text = '(' . $sub_selected . ')';
 									}
-									if ($sub_selected > 0) $sub_selected_text = '(' . $sub_selected . ')';
 								}
+								else {
+									$selected_class = '';
+								}
+								
+								//create an list-item
+								$list_content .= '<li class="' . 
+															$selected_class . 
+															$params['class'] . '" ' . 
+													  'data-value="' . $params['value'] . '" ' . 
+													  'data-id="' . $params['id'] . '" ' . 
+													  'data-parent_id="' . $params['parent_id'] . '" ' . 
+													  $params['extra'] . '>' .	
+												 '	<span>' . $params['value'] . '</span>' . 
+													$glyph_icon_ok . 
+												 '	<span class="sub_selected">' . $sub_selected_text . '</span>' .
+													(($params['children'] > 0) ? $glyph_icon_bottom . $glyph_icon_top : '') . 
+												 '</li>' . $line_break;
 							}
-							else {
-								$selected_class = '';
-							}
-							
-							//create an list-item
-							$list_content .= '<li class="' . 
-														$selected_class . 
-														$params['class'] . '" ' . 
-												  'data-value="' . $params['value'] . '" ' . 
-												  'data-id="' . $params['id'] . '" ' . 
-												  'data-parent_id="' . $params['parent_id'] . '" ' . 
-												  $params['extra'] . '>' . 
-												$arrows . 
-												'<span>' . $params['value'] . '</span>' . 
-												$icon_ok . 
-												'<span class="sub_selected">' . $sub_selected_text . '</span>' . 
-											 '</li>' . $line_break;
-						}
 
-						//create last part of the generated html
-						$list_last = '	</' . $list_type . '>' . $line_break .
-									 '	<input type="hidden" class="selected_ids" name="' . $element . '" id="' . $element . '" value="' . implode(',', $selected_ids) . '">' . $line_break . 
-									 '	<input type="hidden" class="max_display_selected" id="' . $element . '_max_display_selected" value="' . $max_display_selected . '">' . $line_break . 
-									 '	<input type="hidden" class="default_button_text" id="' . $element . '_default_button_text" value="' . $default_button_text . '">' . $line_break . 
-									 '</div>' . $line_break;
-				 
-						//making some corrections on generated html
-						$selected_values_text = ($selected_counter > 0) 
-														? (($selected_counter > $max_display_selected) ? $selected_counter . ' selected' : implode(', ', $selected_values))
-														: $default_button_text;
-						$list_pre = str_replace('%selected_values_text', $selected_values_text, $list_pre);
-						
-						return $list_pre . $list_content . $list_last;
-					} //END function form_dropdown_list
+							//create last part of the generated html
+							$list_last = '	</' . $list_type . '>' . $line_break .
+										 '	<input type="hidden" class="selected_ids" name="' . $element . '" id="' . $element . '" value="' . implode(',', $selected_ids) . '">' . $line_break . 
+										 '	<input type="hidden" class="max_display_selected" id="' . $element . '_max_display_selected" value="' . $max_display_selected . '">' . $line_break . 
+										 '	<input type="hidden" class="default_button_text" id="' . $element . '_default_button_text" value="' . $default_button_text . '">' . $line_break . 
+										 '</div>' . $line_break;
+					 
+							//making some corrections on generated html
+							$selected_values_text = ($selected_counter > 0) 
+															? (($selected_counter > $max_display_selected) ? $selected_counter . ' selected' : implode(', ', $selected_values))
+															: $default_button_text;
+							$list_pre = str_replace('%selected_values_text', $selected_values_text, $list_pre);
+							
+							return $list_pre . $list_content . $list_last;
+						} //END function form_dropdown_list
 				}				
 		
 				
@@ -560,7 +614,29 @@ CHANGES
 
 				TO: AJAX.default_base_url = BASE_URI;	
 
-				
+		
+
+		
+		\network-site\addons\default\modules\bbusers\views\profile\edit\work.php	
+		
+			CHANGED CODE 
+		
+				FROM: <?=form_institution('institution_id', $work['institution_id']) ?> TO: <?=form_institution('institution_id', $work['institution_id'], array('style' => 'width: 322px; height: 29px; margin-bottom: 4px;')) ?>
+		
+				FROM: <?=form_input('position', $work['position']) ?> TO:	<?=form_input('position', $work['position'], 'id="position" style="width: 322px; height: 29px;"') ?>
+					
+				FROM: <?=form_input('profession', $work['profession']) ?>	TO: <?=form_input('profession', $work['profession'], 'id="profession" style="width: 322px; height: 29px;"') ?>
+
+				FROM: <?=form_textarea('details', $work['details']) ?> TO: <?=form_textarea('details', $work['details'], 'id="details" style="width: 320px;"') ?>
+
+			ADDED CODE: 
+
+				<li>
+					<label for="position"><?=lang('system_fields:label:have_experience')?></label>
+					<div class="input"><?=form_dropdown_list('industries', $industries, $industries_selected, array('max_display_selected' => '2'))?></div>
+				</li>	
+					
+					
 				
 		ADDED NEW FILE: \network-site\addons\default\modules\bbusers\views\profile\edit\experience.php		
 				
@@ -569,25 +645,22 @@ CHANGES
 				<div class="experience_form" style="padding: 20px;">
 
 					<?=form_open_multipart('/profile/'.implode('/', $submit_to), array('id'=>'popup_form')) ?>
-					
+
 					<input type="hidden" name="some_random_var" value="x">
-					
+
 					<fieldset>
 						<ul>
 							<li>
 								<legend style="margin-bottom: 20px; text-transform: uppercase;">
 									<?=lang('system_fields:label:have_experience')?>
 								</legend>
-								<?=form_dropdown_list('industries', $industries, $industries_selected)?>
+								<?=form_dropdown_list('industries', $industries, $industries_selected, array('max_display_selected' => '2'))?>
 							</li>
 						</ul>
 					</fieldset>
 
 					<div style="width: 100%; text-align: right;">
-						<input type="button"
-								name="popup_submit" 
-								value="Save" 
-								id="popup_submit" 
+						<input type="button" name="popup_submit" value="Save" id="popup_submit" class="experience_button_save" 
 								style="display: inline-block; 
 										font-size: 16px !important; 
 										font-weight: 300; 
@@ -603,14 +676,14 @@ CHANGES
 										background-color:<?=Settings::get('theme_colour2')?>"
 								onclick="profileEditSubmit($('#popup_form'), 'experience', '');">
 					</div>
-					
+
 					<?=form_close() ?>
 				</div>				
 				
 				
 				
 				
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\css\system_fields_industries_multilevel_list.css		
+		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\css\system_fields_industries_admin.css		
 				
 			CODE IN IT: 
 			
@@ -623,62 +696,71 @@ CHANGES
 					font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 					font-weight: 300;
 				}
-				div.multilevel-multiselect-group > ul.multilevel-container {
-					display: none;
-					max-height: 250px;
-					overflow-y: auto;
-					min-width: 300px;
-					width: auto;
-					overflow-x: auto;
-					margin: 0px;
-					padding: 0px;
-					list-style-type: none;
-				}
+				div.multilevel-multiselect-group > ul.multilevel-container {display: none;}
+				div.multilevel-multiselect-group.open > ul.multilevel-container {display: block;}
+
+				/* Button - where selections are displayed */
 				div.multilevel-multiselect-group > button.multilevel {
-					display: block !important;
+					background-color: #ffffff;
+					background-image: linear-gradient(to bottom, #ffffff 0%, #eeeeee 100%);
+					background-repeat: repeat-x;
+					background-clip: padding-box;
+					border: 1px solid #cccccc;
+					box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+					color: #555555;
+					height: 29px;
+					min-width: 300px;
+					padding: 2px 20px 0 8px;
+					text-decoration: none;
+					white-space: nowrap;
+					overflow: hidden;
+					border-radius: 5px;
+					text-align: left !important;
+					font-family: sans-serif !important;
 					letter-spacing: 0px !important;
-					background-color: #fff !important;
-					background-image: linear-gradient(to bottom, #ffffff 0%, #eeeeee 100%) !important;
-					background-repeat: repeat-x !important;
-					background-clip: padding-box !important;
-					border: 1px solid #cccccc !important;
-					max-height: 31px !important;
-					min-width: 210px !important;
 				}
-				div.multilevel-multiselect-group > button.multilevel[style] {
-					padding-top: #10px !important;
-					color: #555;
+
+				/* List - where list items are */
+				div.multilevel-multiselect-group > ul.multilevel-container {
+					max-height: 240px;
+					overflow-y: auto;
+					overflow-x: hidden;
+					width: 300px;
+					list-style-type: none;
+					padding: 0 0 0 4px;
+					margin: 0 4px 4px 0;
+					margin-top: -1px;
+					border-bottom-right-radius: 4px;
+					border-bottom-left-radius: 4px;
+					border: 1px solid #999999;
+					border-top-color: #d9d9d9;
+					box-shadow: 0 8px 8px rgba(0, 0, 0, .25);
+					box-sizing: border-box;
+					font-size: 12px;
+					font-family: sans-serif;
 				}
+
 				div.multilevel-multiselect-group > ul.multilevel-container.open {
 					display: block;
 				}
 				div.multilevel-multiselect-group > ul.multilevel-container > li {
 					display: list-item;
 					cursor: pointer;
-					margin: 0px;
-					padding: 5px 6px;
+					margin: 0px !important;
+					padding: 5px 6px !important;
 					line-height: 1.428571429;
 					color: #555;
-					font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+					font-family: sans-serif;
 					font-size: 12px;
+					text-align: -webkit-match-parent;
 				}
 				div.multilevel-multiselect-group > ul.multilevel-container > li:hover:not(.selected) {
-					background-color: #e6e6e6;
-				}
-				div.multilevel-multiselect-group > ul.multilevel-container > li > span.glyphicon.glyphicon-ok {
-					display: none;
+					background-color: #337ab7;
+					color: #fff;
 				}
 				div.multilevel-multiselect-group > ul.multilevel-container > li.selected {
 					background-color: #337ab7 !important;
 					color: #fff;
-				}
-				div.multilevel-multiselect-group > ul.multilevel-container > li.selected > span.glyphicon.glyphicon-ok {
-					display: inline;
-					color: #fff;
-				}
-				div.multilevel-multiselect-group > ul.multilevel-container > li.selected > span.glyphicon.glyphicon-menu-down,
-				div.multilevel-multiselect-group > ul.multilevel-container > li.selected > span.glyphicon.glyphicon-menu-up {
-					color: #fff !important;
 				}
 				div.multilevel-multiselect-group > ul.multilevel-container > li.main {
 					display: block;
@@ -691,24 +773,20 @@ CHANGES
 				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub {
 					padding-left: 13px;
 				}
-				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub > span.glyphicon.glyphicon-menu-down {
-					display: inline;
-				}
-				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub > span.glyphicon.glyphicon-menu-up {
-					display: none;
-				}
-				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub.open > span.glyphicon.glyphicon-menu-down {
-					display: none;
-				}
-				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub.open > span.glyphicon.glyphicon-menu-up {
-					display: inline;
-				}
 				div.multilevel-multiselect-group > ul.multilevel-container > li.sub {
-					padding-left: 50px;
+					padding-left: 25px !important;
 					display: none;
+					font-size: 11px;
 				}
-				div.multilevel-multiselect-group > ul.multilevel-container > li.sub.open {
-					display: list-item;
+				div.multilevel-multiselect-group > ul.multilevel-container > li.sub:before {
+					content: "-";
+					padding-right: 5px;
+					color: #555555; 
+					font-weight: bold;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.sub:hover::before,
+				div.multilevel-multiselect-group > ul.multilevel-container > li.sub.selected:before {
+					color: #ffffff; 
 				}
 				div.multilevel-multiselect-group > button.btn {
 					font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
@@ -717,33 +795,261 @@ CHANGES
 					line-height: 13px;
 					text-transform: none;
 				}
+				span.glyphicon.glyphicon-ok { font-size: 9px !important; margin-left: 5px !important;font-weight: 200 !important;color: #888888;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.selected > span.glyphicon.glyphicon-ok {display: inline;color: #fff;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li > span.glyphicon.glyphicon-ok {display: none;}
+
+
+				/* arrows on the panel */
 				span.glyphicon.glyphicon-triangle-top,
-				span.glyphicon.glyphicon-triangle-bottom {
-					font-size: 8px !important;
-					margin-right: 5px !important;
-					color: #555;
-					width: 3px !important;
-				}
-				span.glyphicon.glyphicon-triangle-top {
-					display: none;
-				}
-				span.glyphicon.glyphicon-menu-up,
-				span.glyphicon.glyphicon-menu-down {
-					font-size: 9px !important;
-					margin-right: 5px !important;
-					color: #555;
-				}
-				span.glyphicon.glyphicon-ok {
-					font-size: 9px !important;
-					margin-left: 5px !important;
-					font-weight: 200 !important;
-					color: #555;
-				}
+				span.glyphicon.glyphicon-triangle-bottom {font-size: 8px !important; margin-right: 5px !important; color: #888888; width: 3px !important;}
+				div.multilevel-multiselect-group > button.multilevel > div { display: block; height: 19px; margin-top: 11px; position: absolute; top: 0; right: 0; width: 18px; }
+				div.multilevel-multiselect-group > ul.multilevel-container > li > div {  display: inline; height: 15px; margin-top: 2px; position: absolute; right: 0; width: 18px;}
+
+				/* button arrows - where selections displayed*/
+				div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-top {color: #888888;} 
+				div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-bottom {color: #888888;}
+				div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-top {display: none;}
+				div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-bottom {display: block;}
+				div.multilevel-multiselect-group.open > button.multilevel > div > span.glyphicon-triangle-top {display: block;}
+				div.multilevel-multiselect-group.open > button.multilevel > div > span.glyphicon-triangle-bottom {display: none;}
+
+				/* menu arrows */
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub > div > span.glyphicon.glyphicon-triangle-bottom {display: inline;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub > div > span.glyphicon.glyphicon-triangle-top {display: none;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub.open > div > span.glyphicon.glyphicon-triangle-bottom {display: none;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub.open > div > span.glyphicon.glyphicon-triangle-top {display: inline;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.selected > div > span.glyphicon.glyphicon-triangle-bottom {color: #fff !important;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.selected > div > span.glyphicon.glyphicon-triangle-top {color: #fff !important;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li:hover > div > span.glyphicon.glyphicon-triangle-bottom {color: #fff !important;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li:hover > div > span.glyphicon.glyphicon-triangle-top {color: #fff !important;}
+
+
 				ul.experience-list li.level-2{
 					padding-left: 20px;
 				}
-								
+
+
 			
+		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\css\system_fields_industries_public.css		
+				
+			CODE IN IT: 
+			
+				div.multilevel-multiselect-group {
+					position: relative;
+					display: inline-block;
+					vertical-align: middle;
+					margin: 0px;
+					padding: 0px;
+					font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+					font-weight: 300;
+					border: 1px solid #cccccc;
+				}
+
+				div.multilevel-multiselect-group.open,
+				div.multilevel-multiselect-group:focus-within {
+					border: 1px solid #ec5c13;
+				}
+
+				div.multilevel-multiselect-group > ul.multilevel-container {display: none;}
+				div.multilevel-multiselect-group.open > ul.multilevel-container {display: block;}
+
+				/* Button - where selections are displayed */
+				div.multilevel-multiselect-group > button.multilevel {
+					background-color: #ffffff;
+					color: #555555;
+					height: 29px;
+					min-width: 320px;
+					padding: 2px 20px 0 8px;
+					text-decoration: none;
+					white-space: nowrap;
+					overflow: hidden;
+					border-radius: 0px;
+					text-align: left !important;
+					font-family: sans-serif !important;
+					letter-spacing: 0px !important;
+					border: none;
+					outline: none;
+					background: transparent;
+					-webkit-box-shadow: 0 0 0px #fff /*{c-active-background-color}*/;
+					-moz-box-shadow: 0 0 0px #fff /*{c-active-background-color}*/;
+					box-shadow: 0 0 0px #fff /*{c-active-background-color}*/;	
+				}
+
+				/* List - where list items are */
+				div.multilevel-multiselect-group > ul.multilevel-container {
+					max-height: 240px;
+					overflow-y: auto;
+					overflow-x: hidden;
+					width: 322px;
+					list-style-type: none;
+					padding: 0 0 0 4px;
+					margin: -1px 4px 4px -1px;
+					border-radius: 0px;
+					border: 1px solid #ec5c13;
+					border-top: none;
+					font-size: 12px;
+					font-family: sans-serif;
+				}
+
+				div.multilevel-multiselect-group > ul.multilevel-container.open {
+					display: block;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li {
+					display: list-item;
+					cursor: pointer;
+					margin: 0px !important;
+					padding: 5px 6px !important;
+					line-height: 1.428571429;
+					color: #555;
+					font-family: sans-serif;
+					font-size: 12px;
+					text-align: -webkit-match-parent;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li:hover:not(.selected) {
+					background-color: #337ab7;
+					color: #fff;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.selected {
+					background-color: #337ab7 !important;
+					color: #fff;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main {
+					display: block;
+					padding-left: 27px;
+					white-space: nowrap;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main span.sub_selected{
+					padding-left: 5px;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub {
+					padding-left: 13px;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.sub {
+					padding-left: 25px !important;
+					display: none;
+					font-size: 11px;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.sub:before {
+					content: "-";
+					padding-right: 5px;
+					color: #555555; 
+					font-weight: bold;
+				}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.sub:hover::before,
+				div.multilevel-multiselect-group > ul.multilevel-container > li.sub.selected:before {
+					color: #ffffff; 
+				}
+				div.multilevel-multiselect-group > button.btn {
+					font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+					font-size: 12px;
+					font-weight: 300;
+					line-height: 13px;
+					text-transform: none;
+				}
+				span.glyphicon.glyphicon-ok { font-size: 9px !important; margin-left: 5px !important;font-weight: 200 !important;color: #888888;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.selected > span.glyphicon.glyphicon-ok {display: inline;color: #fff;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li > span.glyphicon.glyphicon-ok {display: none;}
+
+
+				/* arrows on the panel */
+				span.glyphicon.glyphicon-triangle-top,
+				span.glyphicon.glyphicon-triangle-bottom {font-size: 8px !important; margin-right: 5px !important; color: #888888; width: 3px !important;}
+				div.multilevel-multiselect-group > button.multilevel > div { display: block; height: 19px; margin-top: 11px; position: absolute; top: 0; right: 0; width: 18px; }
+				div.multilevel-multiselect-group > ul.multilevel-container > li > div {  display: inline; height: 15px; margin-top: 2px; position: absolute; right: 0; width: 18px;}
+
+				/* button arrows - where selections displayed*/
+				div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-top {color: #888888;} 
+				div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-bottom {color: #888888;}
+				div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-top {display: none;}
+				div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-bottom {display: block;}
+				div.multilevel-multiselect-group.open > button.multilevel > div > span.glyphicon-triangle-top {display: block;}
+				div.multilevel-multiselect-group.open > button.multilevel > div > span.glyphicon-triangle-bottom {display: none;}
+
+				/* menu arrows */
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub > div > span.glyphicon.glyphicon-triangle-bottom {display: inline;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub > div > span.glyphicon.glyphicon-triangle-top {display: none;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub.open > div > span.glyphicon.glyphicon-triangle-bottom {display: none;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub.open > div > span.glyphicon.glyphicon-triangle-top {display: inline;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.selected > div > span.glyphicon.glyphicon-triangle-bottom {color: #fff !important;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li.selected > div > span.glyphicon.glyphicon-triangle-top {color: #fff !important;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li:hover > div > span.glyphicon.glyphicon-triangle-bottom {color: #fff !important;}
+				div.multilevel-multiselect-group > ul.multilevel-container > li:hover > div > span.glyphicon.glyphicon-triangle-top {color: #fff !important;}
+
+
+				ul.experience-list li.level-2{
+					padding-left: 20px;
+				}
+
+			
+			
+		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\css\system_fields_industries_modal.css		
+				
+			CODE IN IT: 			
+					
+				.table.table-condensed
+				{
+					width: 100%;
+					margin: 0px;
+				}
+
+				.table.table-condensed th.question-label {
+					border-top: none;
+					height: 30px;
+				}
+
+				tr.tr-theres-no-added-type > td > h4 {
+					margin-top: 100px; 
+					text-align: center;
+				}
+
+				tr.industry_type_secondary,
+				tr.industry_type_secondary  td {
+					border: none !important;
+				}
+				tr.industry_type_secondary  td {
+					padding: 0px 15px 15px 0px !important;
+				}
+				tr.industry_type_secondary  td.button {
+					width: 135px !important;
+				}
+
+				.modal-footer.industry_types {
+					padding: 12px !important;
+				}
+
+				#added-types-container {
+					padding: 10px 0px 0px 0px !important;
+					border: none !important;
+					
+				}
+
+				#added-types-container
+				{
+					display: block; 
+					border: none; 
+					height: 100%; 
+					width: 100%; 
+					max-height: 200px; 
+					min-height: 200px; 
+					overflow-y: scroll;
+					overflow-x: hidden; 
+					padding: 0px; 
+					margin: 0px;	
+				}
+
+				#industry_types_messages_td{
+					padding: 0 !important;
+					border: none !important;
+					height: 36px !important;
+				}
+				#industry_types_messages{
+					display: none; 
+					height: 30px !important;
+					margin: 0px !important; 
+					padding: 5px 0 0 10px !important; 
+					width: 95% !important;
+				}
 			
 
 
@@ -751,178 +1057,148 @@ CHANGES
 
 			CODE IN IT: 
 
-				$(function(){
-					
+					$(function(){
 
+						/*******************************************************************************
+						********************************************************************************
+						****************  CONTROLLING INDUSTRY TYPES MULTI-SELECT LIST *****************
+						**********************  created by Lajos Deli ToucanTech   *********************
+						*******************************************************************************/
+						
+						
+							if ($(".multilevel-multiselect-group")) {
 
-					/*******************************************************************************
-					********************************************************************************
-					****************  CONTROLLING INDUSTRY TYPES MULTI-SELECT LIST *****************
-					**********************  created by Lajos Deli ToucanTech   *********************
-					*******************************************************************************/
-					
-					
-					if ($(".multilevel-multiselect-group")) {
-
-						$(document).click(function(event) 
-						{ 
-							//Just if the div.multilevel-multiselect-group is in the DOM (can be loaded into the DOM later)
-							if ($(".multilevel-multiselect-group")[0]) 
-							{	
-								//to avoid firing events multiple times
-								event.stopPropagation();
-								
-								//close industries_list div if click event happened outside of the div
-								if( ! $(event.target).closest('.multilevel-multiselect-group').length) {
-									var $container = $('div.multilevel-multiselect-group');
-									var $list_container =  $container.find('ul.multilevel-container');
-									var arrow_up = $container.find('span.glyphicon-triangle-top');
-									var arrow_down = $container.find('span.glyphicon-triangle-bottom');
-														
-									if($list_container.is(":visible")) {
-										$list_container.removeClass('open');
-										arrow_up.css('display', 'none');
-										arrow_down.css('display', 'inline');
-									}
-								}  
-							}
-						});
-					
-						$(".multilevel-multiselect-group")
-							.find('li, button, span')
-							.live('keyup click', function(e)
-							{
-								//Just if the div.multilevel-multiselect-group is in the DOM (can be loaded into the DOM later)
-								if ($(".multilevel-multiselect-group")[0]) 
-								{	
-									//to avoid firing events multiple times
-									e.stopPropagation();
-									e.preventDefault();
-
-									//Set some variables
-									var $container = $(this).closest('div.multilevel-multiselect-group');
-									var $list_container = $container.find('ul.multilevel-container');
-
-									//Set some closure functions
-									var _OpenList = function(to_open) {
-														var arrow_up = $container.find('span.glyphicon-triangle-top');
-														var arrow_down = $container.find('span.glyphicon-triangle-bottom');
-														if (to_open) {
-															$list_container.addClass('open');
-															arrow_up.css('display', 'inline');
-															arrow_down.css('display', 'none');
-														} 
-														else {
-															$list_container.removeClass('open');
-															arrow_up.css('display', 'none');
-															arrow_down.css('display', 'inline');
-														}
-												   };
-									var _OpenSubList = function(el, to_open) {
-															var el_parent = el.parent();
-															var el_children = $list_container.find('li[data-parent_id="' + el_parent.data('id') + '"]');
-															if (to_open) {				
-																el_parent.addClass('open');
-																el_children.css('display', 'list-item');	
-															}
-															else {
-																el_parent.removeClass('open');
-																el_children.css('display', 'none');	
-															}
-													   };
-									var _SetSelected = function(el) {
-															//Set li element css class
-															(el.attr('class').indexOf('selected') == -1) 
-																	? el.addClass('selected')
-																	: el.removeClass('selected');
-															//Set number of selected secondary class
-															var id = el.data('id');
-															var parent_id = el.data('parent_id');
-															var el_parent = $list_container.find('[data-id="' + parent_id + '"]');
-															if (parent_id == 0) {
-																(el.attr('class').indexOf('seperatly-selected') == -1) 
-																	? el.addClass('seperatly-selected') 
-																	: el.removeClass('seperatly-selected');
-															}
-															else {
-																var selected_count = $list_container.find('.selected[data-parent_id="' + parent_id + '"]').length;
-																if (selected_count > 0) {
-																	selected_text = '(' + selected_count + ')';
-																	if (el_parent.attr('class').indexOf('selected') == -1) el_parent.addClass('selected');			
-																}
-																else {
-																	selected_text = '';
-																	if (el_parent.attr('class').indexOf('selected') > -1 && el_parent.attr('class').indexOf('seperatly-selected') == -1) el_parent.removeClass('selected');
-																}
-																el_parent.find('span.sub_selected').html(selected_text);
-															}
-															//Set list hidden field value - value will be the selected li elements' ids - That only field will be just posted
-															var all_selected_ids = '';
-															var all_selected_text = '';
-															var all_selected = 0;
-															$list_container.find('li.selected').each(function(){
-																if (all_selected == 0) {
-																	all_selected_ids += $(this).data('id');
-																	all_selected_text += $(this).data('value');
-																}
-																else {
-																	all_selected_ids += ', ' + $(this).data('id');
-																	all_selected_text += ', ' + $(this).data('value');
-																}
-																all_selected++;
-															});
-															$container.find('input.selected_ids').val(all_selected_ids);
-															//Set selected values text
-															var html = (all_selected > parseInt($container.find('input.max_display_selected').val())) 
-																			? all_selected + " selected"
-																			: ((all_selected == 0) ? $container.find('input.default_button_text').val() : all_selected_text);
-															$container.find('span.selected_values').html(html);
-													   };
-													   
-								
-									//Here comes the "controller" part					
-									//if a keyup event happened and was pressed ESC .... OR ... mouse left the div
-									if (e.type == 'keyup' && e.keyCode == 27)  {
-										_OpenList(false); 
-									}
-									
-									
-									//if a click event happened on a button - this button is that where selected are displayed
-									else if (e.currentTarget.className == 'multilevel btn btn-default' || e.currentTarget.parentElement.className == 'multilevel btn btn-default') {
-										($list_container.attr('class').indexOf('open') == -1) ? _OpenList(true) : _OpenList(false); 
-									}//END controll part
+								$(document).click(function(event) 
+								{ 
+									//Just if the div.multilevel-multiselect-group is in the DOM (can be loaded into the DOM later)
+									if ($(".multilevel-multiselect-group")[0]) 
+									{	
+										//to avoid firing events multiple times
+										event.stopPropagation();
 										
-									
-									//if a click event happened on a glyphicon down/up span element
-									else if (e.target.className == 'glyphicon glyphicon-menu-down' || e.target.className == 'glyphicon glyphicon-menu-up') {
-										if (e.target.className == 'glyphicon glyphicon-menu-down') {						
-											_OpenSubList($(this), true);
-										}
-										else if (e.target.className == 'glyphicon glyphicon-menu-up') {
-											_OpenSubList($(this), false);
-										}
+										//close industries_list div if click event happened outside of the div
+										if( ! $(event.target).closest('.multilevel-multiselect-group').length) {
+											var $container = $('div.multilevel-multiselect-group');
+											var $list_container =  $container.find('ul.multilevel-container');							
+											if($list_container.is(":visible")) {
+												($container.attr('class').indexOf('open') == -1) ? $container.addClass('open') : $container.removeClass('open');
+											}
+										}  
 									}
-									
-									
-									//if a click event on a li element
-									else if (e.target.localName == 'li' || e.currentTarget.parentElement.localName == 'li') {
-										_SetSelected($($(this)).closest('li'));
-									}
-								}//END if ($(".multilevel-multiselect-group")[0]) 
-							}//END click function
-						)//END .live
-					}//END if ($("ul.multiselect-container"))
-					
-
-					
-					/**********************************
-					*	     END INDUSTRY TYPES       *
-					***********************************/	
-					
-				});			
+								});
 							
-				
-				
+								$(".multilevel-multiselect-group")
+									.find('li, button, span')
+									.live('keyup click', function(event)
+									{
+										//Just if the div.multilevel-multiselect-group is in the DOM (can be loaded into the DOM later)
+										if ($(".multilevel-multiselect-group")[0]) 
+										{	
+											//to avoid firing events multiple times
+											event.stopPropagation();
+											event.preventDefault();
+
+											//Set some variables
+											var $this = $(this);
+											var $container =  $this.closest('div.multilevel-multiselect-group');
+											var $list_container = $container.find('ul.multilevel-container');
+
+											//Set some closure functions
+											var _OpenMainList = function(to_open) {
+																(to_open) ? $container.addClass('open') : $container.removeClass('open');
+														   };
+											var _OpenSubList = function(el, to_open) {
+																	var children = $list_container.find('li[data-parent_id="' + el.data('id') + '"]');
+																	if (to_open) {				
+																		el.addClass('open');
+																		children.css('display', 'list-item');	
+																	}
+																	else {
+																		el.removeClass('open');
+																		children.css('display', 'none');	
+																	}
+															   };
+											var _SetSelected = function(el) {
+																	//Set li element css class
+																	(el.attr('class').indexOf('selected') == -1) 
+																			? el.addClass('selected')
+																			: el.removeClass('selected');
+																	
+																	//Set number of selected secondary class
+																	var id = el.data('id');
+																	var parent_id = el.data('parent_id');
+																	var el_parent = $list_container.find('[data-id="' + parent_id + '"]');
+																	if (parent_id == 0) {
+																		(el.attr('class').indexOf('seperatly-selected') == -1) 
+																			? el.addClass('seperatly-selected') 
+																			: el.removeClass('seperatly-selected');
+																	}
+																	else {
+																		var selected_count = $list_container.find('.selected[data-parent_id="' + parent_id + '"]').length;
+																		if (selected_count > 0) {
+																			selected_text = '(' + selected_count + ')';
+																			if (el_parent.attr('class').indexOf('selected') == -1) el_parent.addClass('selected');			
+																		}
+																		else {
+																			selected_text = '';
+																			if (el_parent.attr('class').indexOf('selected') > -1 && el_parent.attr('class').indexOf('seperatly-selected') == -1) el_parent.removeClass('selected');
+																		}
+																		el_parent.find('span.sub_selected').html(selected_text);
+																	}
+																	
+																	//Set list hidden field value - value will be the selected li elements' ids - That only field will be just posted
+																	var all_selected_ids = '';
+																	var all_selected_text = '';
+																	var all_selected = 0;
+																	var separator = ''; 
+																	$list_container.find('li.selected').each(function() {
+																		all_selected_ids += separator + $(this).data('id');
+																		all_selected_text += separator + $(this).data('value');
+																		separator = ', '; 
+																		all_selected++;
+																	});
+																	$container.find('input.selected_ids').val(all_selected_ids);
+																	
+																	//Set selected values text
+																	var html = (all_selected > parseInt($container.find('input.max_display_selected').val())) 
+																					? all_selected + " selected"
+																					: ((all_selected == 0) ? $container.find('input.default_button_text').val() : all_selected_text);
+																	$container.find('span.selected_values').html(html);
+															   };
+						
+
+											//Here comes the "controller" part					
+											//if a keyup event happened and was pressed ESC
+											if (event.type == 'keyup' && event.keyCode == 27) _OpenMainList(false); 
+											
+											//if a click event happened on a button - this button is that where selected are displayed
+											else if ($this[0].type == "button" || $this.parent()[0].type == "button" || $this.parent().parent()[0].type == "button") _OpenMainList(($container.attr('class').indexOf('open') == -1) ? true : false);
+											
+											//if a click event happened on a menu arrow				
+											else if ($this.is("span") && $this.parent().is("div") || ($this.is("span") && $this.parent().parent().is("li"))) {
+												if ($this.attr('class') == 'glyphicon glyphicon-triangle-bottom menu') _OpenSubList( $this.parent().parent(), true);
+												else if ($this.attr('class') == 'glyphicon glyphicon-triangle-top menu') _OpenSubList( $this.parent().parent(), false);
+											}		
+											
+											//if a click event on a li element
+											else if ($this.is("li") || $this.parent().is("li")) _SetSelected($( $this).closest('li'));
+
+
+										}//END if ($(".multilevel-multiselect-group")[0]) 
+									}//END click function
+								)//END .live
+							}//END if ($("ul.multiselect-container"))
+							
+
+							
+							/**********************************
+							*	     END INDUSTRY TYPES       *
+							***********************************/	
+							
+						});
+
+
+	
 	
 		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\js\system_fields_industries_modal.js
 		
@@ -2615,6 +2891,9 @@ CHANGES
 				
 				ADDED FUNCTIONS 
 				
+					/* 
+						Create defaut_system_fields table if it doesn't exist yet
+					*/
 					private function _system_fields_table_create() 
 					{
 						if ( ! $this->db->table_exists('system_fields')) 
@@ -2637,6 +2916,9 @@ CHANGES
 					
 					
 
+					/*
+						insert records into system_fields table - use this method with _system_fields_table_records method
+					*/
 					private function _system_fields_table_insert($records = array()) 
 					{
 						$table = $this->db->dbprefix('system_fields');	
@@ -2654,6 +2936,9 @@ CHANGES
 					
 					
 					
+					/*
+						basic records into system_fields table - use this method with _system_fields_table_insert method
+					*/
 					private function _system_fields_table_records() 
 					{
 						$time = now();
@@ -2676,6 +2961,9 @@ CHANGES
 					
 					
 					
+					/* 
+						Create defaut_system_fields_option table if it doesn't exist yet
+					*/
 					private function _system_field_options_table_create() 
 					{
 						if ( ! $this->db->table_exists('system_field_options')) 
@@ -2703,6 +2991,9 @@ CHANGES
 
 					
 					
+					/*
+						insert records into defaut_system_fields_option table - use this method with _system_field_options_table_records method
+					*/
 					private function _system_field_options_table_insert($records = array()) 
 					{
 						$table = $this->db->dbprefix('system_field_options');
@@ -2718,6 +3009,9 @@ CHANGES
 					
 					
 					
+					/*
+						basic records into defaut_system_fields_option table - use this method with _system_field_options_table_insert method
+					*/
 					private function _system_field_options_table_records() 
 					{
 						$time = now();
@@ -2730,41 +3024,79 @@ CHANGES
 							array('parent_id' => 0, 'question_id' => 1, 'deletable' => true, 'created_on' => $time, 'options' => 'Friends'),
 							array('parent_id' => 0, 'question_id' => 1, 'deletable' => true, 'created_on' => $time, 'options' => 'Couples'),
 							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Academia'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Aerospace and defence'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Arts and media'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Banking, finance and accounting'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Charity and non-profit'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Construction and property'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Aerospace & defence'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Agriculture & forestry'),					
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Arts & culture'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Asset management'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Building & construction'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Charity & non-profit'),
 							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Consultancy'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Corporate finance & investment banking'),							
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Design & architecture'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Digital Media'),							
 							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Education & teaching'),
 							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Energy & utilities'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Environmental & agriculture'),
 							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Engineering & manufacturing'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Hospitality, tourism & sport'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Internet and new media'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'IT and telecommunications'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Financial services'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Govt & public sector'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Hospitality, travel & tourism'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Investment, private equity & venture capital'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'IT & telecommunications'),
 							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Law'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Logistics, transport and shipping'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Marketing and PR'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Medical, veterinary and pharmaceutical'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Public sector'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Publishing and journalism'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Logistics, transport & shipping'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Marketing & PR'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Medical & healthcare'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Mining & metals'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Pharmaceuticals & biotech'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Property & real estate'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Publishing & journalism'),
 							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Recruitment & HR'),
 							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Retail'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Science and research'),
-							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Uniformed services'),					
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Science & research'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Sport'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Technology & software'),
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Uniformed services'),							
+							array('parent_id' => 0, 'question_id' => 2, 'deletable' => false, 'created_on' => $time, 'options' => 'Veterinary'),					
 						);
 					} //END function _system_field_options_table_records() 		
 					
 					
 					
+					/* convert old inustry types into the new values and form */
 					function _convert_industry_type_values($table, $field)
 					{
 						$this->load->library('Options');
 						
+						/* conversions table to change old values the new ones */
+						$conversions_table = array(
+							'Aerospace and defence' => 'Aerospace & defence',
+							'Arts and media' => 'Arts & culture',
+							'Banking, finance and accounting' => 'Corporate finance & investment banking',
+							'Charity and non-profit' => 'Charity & non-profit',
+							'Construction and property' => 'Building & construction',
+							'Environmental & agriculture' => 'Agriculture & forestry',
+							'Internet and new media' => 'Digital Media',
+							'IT and telecommunications' => 'IT & telecommunications',
+							'Logistics, transport and shipping' => 'Logistics, transport & shipping',
+							'Marketing and PR' => 'Marketing & PR',
+							'Medical, veterinary and pharmaceutical' => 'Medical & healthcare',
+							'Public sector' => 'Govt & public sector',
+							'Publishing and journalism' => 'Publishing & journalism',
+							'Science and research' => 'Science & research'
+						);
+						
 						$old_industries = $this->options->nb_industry_sectors();
 						$OK = true;
 
+						/*
+							1. we get the old data from db and from $table and $filed
+							2. checking it is empty or not 
+							3. take apart the string value for old industry types
+							4. firts, convert the old industry type for the new one by $conversions_table, see above
+							5. get the id of the new industry type value from default_system_field_options table
+							6. create a new structure with id of the new industry type and new industry type id||industry_type id2||industrype2 ...
+							7. updating the field value
+						*/
 						$query = $this->db->select('id, ' . $field)->order_by('id', 'ASC')->get($table);
 						foreach ($query->result_array() as $row) 
 						{
@@ -2774,24 +3106,26 @@ CHANGES
 							if (trim($value, '\r\n') != '') 
 							{
 								$value_a = explode(PHP_EOL, $value);
-								if (!empty($value_a))
+								
+								if ( ! empty($value_a))
 								{
 									foreach($value_a as $key => $option) 
 									{
+										$option = $conversions_table[$option];
+										
 										$hit = $this->db->select('id')
 															->where('options', $option)
 															->where('parent_id', 0)
 															->get($this->db->dbprefix('system_field_options'))
 															->row_array();
 															
-										if (!empty($hit))
-										{
+										if ( ! empty($hit)) {
 											$value_new_a[] = $hit['id'] . '||' . $option;
 										}
 									}
 									
-									if (!empty($value_new_a))
-									{
+									if ( ! empty($value_new_a))
+									{ 
 										$value_new = implode(PHP_EOL, $value_new_a);
 										$this->db->where('id', $row['id']);
 										$OK = $this->db->update($table, array($field => $value_new));
@@ -2801,7 +3135,7 @@ CHANGES
 						}
 
 						return $OK;
-					}//END function _convert_industry_type_values() 		
+					}//END function _convert_industry_type_values() 	
 
 
 
