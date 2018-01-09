@@ -1,0 +1,141 @@
+div.multilevel-multiselect-group {
+	position: relative;
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0px;
+	padding: 0px;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+	font-weight: 300;
+}
+div.multilevel-multiselect-group > ul.multilevel-container {display: none;}
+div.multilevel-multiselect-group.open > ul.multilevel-container {display: block;}
+
+/* Button - where selections are displayed */
+div.multilevel-multiselect-group > button.multilevel {
+	background-color: #ffffff;
+	background-image: linear-gradient(to bottom, #ffffff 0%, #eeeeee 100%);
+	background-repeat: repeat-x;
+	background-clip: padding-box;
+	border: 1px solid #cccccc;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    color: #555555;
+	height: 29px;
+	min-width: 300px;
+	padding: 2px 20px 0 8px;
+	text-decoration: none;
+    white-space: nowrap;
+	overflow: hidden;
+	border-radius: 5px;
+	text-align: left !important;
+	font-family: sans-serif !important;
+	letter-spacing: 0px !important;
+}
+
+/* List - where list items are */
+div.multilevel-multiselect-group > ul.multilevel-container {
+	max-height: 240px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	width: 300px;
+	list-style-type: none;
+	padding: 0 0 0 4px;
+	margin: 0 4px 4px 0;
+	margin-top: -1px;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+	border: 1px solid #999999;
+	border-top-color: #d9d9d9;
+	box-shadow: 0 8px 8px rgba(0, 0, 0, .25);
+	box-sizing: border-box;
+	font-size: 12px;
+	font-family: sans-serif;
+}
+
+div.multilevel-multiselect-group > ul.multilevel-container.open {
+	display: block;
+}
+div.multilevel-multiselect-group > ul.multilevel-container > li {
+	display: list-item;
+	cursor: pointer;
+	margin: 0px !important;
+	padding: 5px 6px !important;
+	line-height: 1.428571429;
+	color: #555;
+	font-family: sans-serif;
+	font-size: 12px;
+	text-align: -webkit-match-parent;
+}
+div.multilevel-multiselect-group > ul.multilevel-container > li:hover:not(.selected) {
+	background-color: #337ab7;
+	color: #fff;
+}
+div.multilevel-multiselect-group > ul.multilevel-container > li.selected {
+	background-color: #337ab7 !important;
+	color: #fff;
+}
+div.multilevel-multiselect-group > ul.multilevel-container > li.main {
+	display: block;
+	padding-left: 27px;
+	white-space: nowrap;
+}
+div.multilevel-multiselect-group > ul.multilevel-container > li.main span.sub_selected{
+	padding-left: 5px;
+}
+div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub {
+	padding-left: 13px;
+}
+div.multilevel-multiselect-group > ul.multilevel-container > li.sub {
+	padding-left: 25px !important;
+	display: none;
+	font-size: 11px;
+}
+div.multilevel-multiselect-group > ul.multilevel-container > li.sub:before {
+    content: "-";
+    padding-right: 5px;
+    color: #555555; 
+	font-weight: bold;
+}
+div.multilevel-multiselect-group > ul.multilevel-container > li.sub:hover::before,
+div.multilevel-multiselect-group > ul.multilevel-container > li.sub.selected:before {
+    color: #ffffff; 
+}
+div.multilevel-multiselect-group > button.btn {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+	font-size: 12px;
+	font-weight: 300;
+	line-height: 13px;
+	text-transform: none;
+}
+span.glyphicon.glyphicon-ok { font-size: 9px !important; margin-left: 5px !important;font-weight: 200 !important;color: #888888;}
+div.multilevel-multiselect-group > ul.multilevel-container > li.selected > span.glyphicon.glyphicon-ok {display: inline;color: #fff;}
+div.multilevel-multiselect-group > ul.multilevel-container > li > span.glyphicon.glyphicon-ok {display: none;}
+
+
+/* arrows on the panel */
+span.glyphicon.glyphicon-triangle-top,
+span.glyphicon.glyphicon-triangle-bottom {font-size: 8px !important; margin-right: 5px !important; color: #888888; width: 3px !important;}
+div.multilevel-multiselect-group > button.multilevel > div { display: block; height: 19px; margin-top: 11px; position: absolute; top: 0; right: 0; width: 18px; }
+div.multilevel-multiselect-group > ul.multilevel-container > li > div {  display: inline; height: 15px; margin-top: 2px; position: absolute; right: 0; width: 18px;}
+
+/* button arrows - where selections displayed*/
+div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-top {color: #888888;} 
+div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-bottom {color: #888888;}
+div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-top {display: none;}
+div.multilevel-multiselect-group > button.multilevel > div > span.glyphicon-triangle-bottom {display: block;}
+div.multilevel-multiselect-group.open > button.multilevel > div > span.glyphicon-triangle-top {display: block;}
+div.multilevel-multiselect-group.open > button.multilevel > div > span.glyphicon-triangle-bottom {display: none;}
+
+/* menu arrows */
+div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub > div > span.glyphicon.glyphicon-triangle-bottom {display: inline;}
+div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub > div > span.glyphicon.glyphicon-triangle-top {display: none;}
+div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub.open > div > span.glyphicon.glyphicon-triangle-bottom {display: none;}
+div.multilevel-multiselect-group > ul.multilevel-container > li.main.with-sub.open > div > span.glyphicon.glyphicon-triangle-top {display: inline;}
+div.multilevel-multiselect-group > ul.multilevel-container > li.selected > div > span.glyphicon.glyphicon-triangle-bottom {color: #fff !important;}
+div.multilevel-multiselect-group > ul.multilevel-container > li.selected > div > span.glyphicon.glyphicon-triangle-top {color: #fff !important;}
+div.multilevel-multiselect-group > ul.multilevel-container > li:hover > div > span.glyphicon.glyphicon-triangle-bottom {color: #fff !important;}
+div.multilevel-multiselect-group > ul.multilevel-container > li:hover > div > span.glyphicon.glyphicon-triangle-top {color: #fff !important;}
+
+
+ul.experience-list li.level-2{
+	padding-left: 20px;
+}

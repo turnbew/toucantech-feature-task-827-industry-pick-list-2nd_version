@@ -1,0 +1,63 @@
+.table.table-condensed
+{
+	width: 100%;
+	margin: 0px;
+}
+
+.table.table-condensed th.question-label {
+	border-top: none;
+	height: 30px;
+}
+
+tr.tr-theres-no-added-type > td > h4 {
+	margin-top: 100px; 
+	text-align: center;
+}
+
+tr.industry_type_secondary,
+tr.industry_type_secondary  td {
+	border: none !important;
+}
+tr.industry_type_secondary  td {
+	padding: 0px 15px 15px 0px !important;
+}
+tr.industry_type_secondary  td.button {
+	width: 135px !important;
+}
+
+.modal-footer.industry_types {
+	padding: 12px !important;
+}
+
+#added-types-container {
+	padding: 10px 0px 0px 0px !important;
+	border: none !important;
+	
+}
+
+#added-types-container
+{
+	display: block; 
+	border: none; 
+	height: 100%; 
+	width: 100%; 
+	max-height: 200px; 
+	min-height: 200px; 
+	overflow-y: scroll;
+	overflow-x: hidden; 
+	padding: 0px; 
+	margin: 0px;	
+}
+
+#industry_types_messages_td{
+	padding: 0 !important;
+	border: none !important;
+	height: 36px !important;
+}
+#industry_types_messages{
+	display: none; 
+	height: 30px !important;
+	margin: 0px !important; 
+	padding: 5px 0 0 10px !important; 
+	width: 95% !important;
+}
