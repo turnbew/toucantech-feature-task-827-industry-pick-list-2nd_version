@@ -1,6 +1,14 @@
+FOR PRIVACY AND CODE PROTECTING REASONS THIS IS A SIMPLIFIED VERSION OF CHANGES AND NEW FEATURES
+
 TASK DATE: 07.12.2017 - 13.12.2017  
 
 TASK LEVEL: ADVANCED - HARD
+
+TASK SHORT DESCRIPTION: 827 [
+								827 Careers & mentoring P1 (insustry pick list and content tags) 2nd version
+							]
+							
+GITHUB REPOSITORY CODE: feature/task-827-industry-pick-list-2nd_version
 
 NOTE: I made some extra things with this task
 
@@ -11,17 +19,11 @@ NOTE: I made some extra things with this task
 		- Creating new fiel-type - multi-categories select list
 		- similar to AngularJS "APP" jquery controller part
 
-TASK SHORT DESCRIPTION: 827 Careers & mentoring P1 (insustry pick list and content tags) 2nd version
-
-GITHUB REPOSITORY CODE: feature/task-827-industry-pick-list-2nd_version
-
-ORIGINAL WORK: https://github.com/BusinessBecause/network-site/tree/feature/task-827-industry-pick-list-2nd_version
-
 CHANGES
 
 	IN FILES: 
 	
-		\network-site\addons\default\modules\bbusers\controllers\profile.php
+		profile.php
 		
 			ADDED CODE: 
 			
@@ -33,9 +35,7 @@ CHANGES
 					//experiences value converting to HTML snippet
 					$profile['experiences_hierarchial'] = $this->system_fields->industries_hierarchical_list($profile['experience']);
 					....
-					->append_css('module::/../../network_settings/css/system_fields_industries_public.css')
-					->append_js('module::/../../network_settings/js/system_fields_industries_list.js')
-		
+
 			ADDED CODE:
 			
 				//inside function save_work
@@ -72,21 +72,7 @@ CHANGES
 					}
 					else 
 					{	
-						$this->users->may_edit($uid) or show_404();
-						$this->load->controller('system_fields', 'network_settings');
-						 
-						$experience = $this->profile_m->get_profile_field_value($uid, 'experience');
-						
-						$data = array(
-							'submit_to' => array('save_experience', $uid),
-							'industries' => $this->system_fields_m->get_industry_types_for_list(),
-							'industries_selected' => $this->system_fields_m->get_industry_ids_from_value($experience),
-						);		
-						
-						$this->template
-							->enable_parser(false)
-							->set_layout('')
-							->build('profile/edit/experience.php', $data);
+						..............
 					}
 						
 				}//END function edit_experience
@@ -108,26 +94,14 @@ CHANGES
 						$experiences = $this->system_fields_m->get_industry_db_value_from_ids($this->input->post('industries'));		
 						$db_result = $this->profile_m->update($uid, array('experience' => $experiences));
 
-						if($db_result) {
-							$profile = (array)$this->ion_auth->get_user($uid) or show_404(); 
-							$profile['experiences_hierarchial'] = $this->system_fields->industries_hierarchical_list($profile['experience']);
-							
-							return $this->view($uid, 'experience');
-						} 
-						else {
-							$response = array(
-									'status' => 'error',
-									'messages' => $this->form_validation->error_array(),
-							);
-							$this->template->build_json($response);
-						}			
+						................
 					}
 				}//END function save_experience	
 	
 	
 	
 	
-		\network-site\addons\default\modules\institutions\helpers\institutions_helper.php
+		institutions_helper.php
 	
 			CHANGED CODE:
 			
@@ -136,7 +110,7 @@ CHANGES
 	
 	
 	
-		\network-site\addons\default\modules\institutions\views\input.php
+		input.php
 	
 			CHANGED CODE: 
 	
@@ -146,7 +120,7 @@ CHANGES
 	
 	
 	
-		\network-site\addons\default\modules\bbusers\models\profile_m.php
+		\neprofile_m.php
 	
 			ADDED NEW FUNCTION: 
 			
@@ -176,7 +150,7 @@ CHANGES
 				}//End function get_profile_field_value
 	
 	
-		\network-site\addons\default\modules\bbusers\js\profile.js
+		profile.js
 	
 			ADDED CODE: 
 			
@@ -185,7 +159,7 @@ CHANGES
 				part == 'experience'
 	
 	
-		\network-site\addons\default\modules\bbusers\config\routes.php
+		routes.php
 			
 			ADDED CODE: 
 			
@@ -194,7 +168,7 @@ CHANGES
 					'edit_experience' .... 'save_experience'
 	
 	
-		\network-site\addons\default\modules\bbusers\views\profile\view.php
+	view.php
 		
 			CHANGED CODE: 
 			
@@ -218,11 +192,11 @@ CHANGES
 	
 		ADDED THIRD PARTY FILES: 
 	
-			- bootstrap.multiselect.css, bootstrap.multiselect.js ... network-site\assets\bootstrap-multiselect\ folder
+			- bootstrap.multiselect.css, bootstrap.multiselect.js ... bootstrap-multiselect\ folder
 				
 			
 	
-		\network-site\system\cms\config\asset.php
+		asset.php
 		
 			ADDED CODE: 
 			
@@ -245,7 +219,7 @@ CHANGES
 				
 				
 	
-		\network-site\system\cms\core\Public_Controller.php
+		Public_Controller.php
 		
 			ADDED CODE: 
 			
@@ -260,14 +234,14 @@ CHANGES
 				}
 	
 
-		\network-site\addons\default\modules\network_settings\views\members\custom_questions.php
+		custom_questions.php
 		
 			CHANGED CODE:
 			
 				FROM: Add Question TO: <?=lang('system_fields:button:add_field')?>
 				
 	
-		\network-site\addons\default\modules\network_settings\views\members\tables\custom-questions-table.php
+		custom-questions-table.php
 		
 			CHANGED CODE:
 			
@@ -275,7 +249,7 @@ CHANGES
 				
 				
 		
-		\network-site\addons\default\modules\network_settings\controllers\members.php
+		members.php
 		
 			ADDED CODE: //Inside function custom_questions
 			
@@ -309,7 +283,7 @@ CHANGES
 				
 				 
 		
-		\network-site\addons\default\modules\network_settings\views\members\custom_questions.php
+		custom_questions.php
 				
 			CHANGED CODE: 
 			
@@ -322,7 +296,7 @@ CHANGES
 				<div class="modal fade" id="industry-types-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"></div>
 		
 	
-		\network-site\system\codeigniter\core\Loader.php 
+		Loader.php 
 		
 			ADDED CODE: //part of loading controller into another controller
 			
@@ -334,7 +308,7 @@ CHANGES
 				 */
 				 
 				 
-		\network-site\system\cms\libraries\MX\Loader.php		 
+		Loader.php		 
 		
 			ADDED CODE: //a new function to load controller into another controller
 			
@@ -387,7 +361,7 @@ CHANGES
 	
 	
 	
-		\network-site\addons\default\modules\network_settings\views\members\tables\questions.php
+		questions.php
 		
 			CHANGED some static text to lang constant
 			
@@ -406,15 +380,15 @@ CHANGES
 				</tr>				
 				
 	
-		\network-site\addons\default\modules\network_settings\views\members\partials\menu.php
-		\network-site\addons\default\modules\network_settings\views\members\partials\query_builder.php
+		menu.php
+		query_builder.php
 	
 			CHANGED CODE
 				
 				FROM: Custom Questions TO: <?=lang('system_fields:label:custom_fields')?>
 				
 		
-		\network-site\addons\default\modules\network_settings\views\content\events_form.php
+		events_form.php
 		
 			CHANGED CODE	//some static text
 			
@@ -439,7 +413,7 @@ CHANGES
 				
 				
 		
-		\network-site\system\codeigniter\helpers\form_helper.php
+	form_helper.php
 		
 			ADDED NEW FUNCTION IN IT: 
 			
@@ -487,69 +461,7 @@ CHANGES
 							$glyph_icon_top = '<span class="glyphicon glyphicon-triangle-top menu"></span></div>';
 							
 							//create a ul/ol list container
-							$list_pre = '<div name="' . $element . '_list" id="' . $element . '_list" class="' . $multiselect_group_class . '">' . $line_break . 
-										'	<button type="button" class="' . $multiselect_button_class . '" title="%selected_values_text">' . $line_break . 
-										'		<span class="selected_values">%selected_values_text</span>' . $line_break . 
-													$glyph_icon_bottom . $line_break . 
-													$glyph_icon_top . $line_break . 
-										'	</button>' . $line_break . 
-										'	<' . $list_type . ' class="' . $multiselect_list_class . '">' . $line_break;    
-										
-							//create the list
-							$list_content = '';
-							$selected_values = array();
-							$selected_ids = array();
-							$selected_counter = 0;
-							$orig_list = $list;
-							$length = count($list);
-							foreach ($list as $key => $params)
-							{			
-								//if the list item is selected
-								$sub_selected_text = '';
-								if (in_array($params['id'], $list_selected)) {
-									$selected_class = 'selected ' . (($params['parent_id'] == 0) ? 'seperatly-selected ' : '');
-									$selected_values[] = $params['value'];
-									$selected_ids[] = $params['id']; 
-									$selected_counter++;
-									if ($params['level'] == 1) {
-										$sub_selected = 0;
-										for ($i = 0; $i < $length; $i++) {
-											if ($orig_list[$i]['parent_id'] == $params['id'] and in_array($orig_list[$i]['id'], $list_selected)) $sub_selected++;	
-										}
-										if ($sub_selected > 0) $sub_selected_text = '(' . $sub_selected . ')';
-									}
-								}
-								else {
-									$selected_class = '';
-								}
-								
-								//create an list-item
-								$list_content .= '<li class="' . 
-															$selected_class . 
-															$params['class'] . '" ' . 
-													  'data-value="' . $params['value'] . '" ' . 
-													  'data-id="' . $params['id'] . '" ' . 
-													  'data-parent_id="' . $params['parent_id'] . '" ' . 
-													  $params['extra'] . '>' .	
-												 '	<span>' . $params['value'] . '</span>' . 
-													$glyph_icon_ok . 
-												 '	<span class="sub_selected">' . $sub_selected_text . '</span>' .
-													(($params['children'] > 0) ? $glyph_icon_bottom . $glyph_icon_top : '') . 
-												 '</li>' . $line_break;
-							}
-
-							//create last part of the generated html
-							$list_last = '	</' . $list_type . '>' . $line_break .
-										 '	<input type="hidden" class="selected_ids" name="' . $element . '" id="' . $element . '" value="' . implode(',', $selected_ids) . '">' . $line_break . 
-										 '	<input type="hidden" class="max_display_selected" id="' . $element . '_max_display_selected" value="' . $max_display_selected . '">' . $line_break . 
-										 '	<input type="hidden" class="default_button_text" id="' . $element . '_default_button_text" value="' . $default_button_text . '">' . $line_break . 
-										 '</div>' . $line_break;
-					 
-							//making some corrections on generated html
-							$selected_values_text = ($selected_counter > 0) 
-															? (($selected_counter > $max_display_selected) ? $selected_counter . ' selected' : implode(', ', $selected_values))
-															: $default_button_text;
-							$list_pre = str_replace('%selected_values_text', $selected_values_text, $list_pre);
+							..................
 							
 							return $list_pre . $list_content . $list_last;
 						} //END function form_dropdown_list
@@ -559,7 +471,7 @@ CHANGES
 				
 					
 	
-		\network-site\system\codeigniter\database\DB_query_builder.php
+		DB_query_builder.php
 		
 			ADDED CODE //a new function
 			
@@ -606,7 +518,7 @@ CHANGES
 	
 	
 	
-		\network-site\assets\_commons\common_ajax.js
+		common_ajax.js
 		
 			CHANGED CODE //inside function __construct 
 				
@@ -617,7 +529,7 @@ CHANGES
 		
 
 		
-		\network-site\addons\default\modules\bbusers\views\profile\edit\work.php	
+		work.php	
 		
 			CHANGED CODE 
 		
@@ -638,7 +550,7 @@ CHANGES
 					
 					
 				
-		ADDED NEW FILE: \network-site\addons\default\modules\bbusers\views\profile\edit\experience.php		
+		ADDED NEW FILE: experience.php		
 				
 			CODE IN IT:
 
@@ -683,7 +595,7 @@ CHANGES
 				
 				
 				
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\css\system_fields_industries_admin.css		
+		ADDED NEW FILE: system_fields_industries_admin.css		
 				
 			CODE IN IT: 
 			
@@ -831,7 +743,7 @@ CHANGES
 
 
 			
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\css\system_fields_industries_public.css		
+		ADDED NEW FILE: system_fields_industries_public.css		
 				
 			CODE IN IT: 
 			
@@ -983,7 +895,7 @@ CHANGES
 
 			
 			
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\css\system_fields_industries_modal.css		
+		ADDED NEW FILE:system_fields_industries_modal.css		
 				
 			CODE IN IT: 			
 					
@@ -1053,7 +965,7 @@ CHANGES
 			
 
 
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\js\system_fields_industries_multilevel_list.js
+		ADDED NEW FILE: system_fields_industries_multilevel_list.js
 
 			CODE IN IT: 
 
@@ -1119,69 +1031,12 @@ CHANGES
 																	}
 															   };
 											var _SetSelected = function(el) {
-																	//Set li element css class
-																	(el.attr('class').indexOf('selected') == -1) 
-																			? el.addClass('selected')
-																			: el.removeClass('selected');
-																	
-																	//Set number of selected secondary class
-																	var id = el.data('id');
-																	var parent_id = el.data('parent_id');
-																	var el_parent = $list_container.find('[data-id="' + parent_id + '"]');
-																	if (parent_id == 0) {
-																		(el.attr('class').indexOf('seperatly-selected') == -1) 
-																			? el.addClass('seperatly-selected') 
-																			: el.removeClass('seperatly-selected');
-																	}
-																	else {
-																		var selected_count = $list_container.find('.selected[data-parent_id="' + parent_id + '"]').length;
-																		if (selected_count > 0) {
-																			selected_text = '(' + selected_count + ')';
-																			if (el_parent.attr('class').indexOf('selected') == -1) el_parent.addClass('selected');			
-																		}
-																		else {
-																			selected_text = '';
-																			if (el_parent.attr('class').indexOf('selected') > -1 && el_parent.attr('class').indexOf('seperatly-selected') == -1) el_parent.removeClass('selected');
-																		}
-																		el_parent.find('span.sub_selected').html(selected_text);
-																	}
-																	
-																	//Set list hidden field value - value will be the selected li elements' ids - That only field will be just posted
-																	var all_selected_ids = '';
-																	var all_selected_text = '';
-																	var all_selected = 0;
-																	var separator = ''; 
-																	$list_container.find('li.selected').each(function() {
-																		all_selected_ids += separator + $(this).data('id');
-																		all_selected_text += separator + $(this).data('value');
-																		separator = ', '; 
-																		all_selected++;
-																	});
-																	$container.find('input.selected_ids').val(all_selected_ids);
-																	
-																	//Set selected values text
-																	var html = (all_selected > parseInt($container.find('input.max_display_selected').val())) 
-																					? all_selected + " selected"
-																					: ((all_selected == 0) ? $container.find('input.default_button_text').val() : all_selected_text);
-																	$container.find('span.selected_values').html(html);
+																	.............
 															   };
 						
 
 											//Here comes the "controller" part					
-											//if a keyup event happened and was pressed ESC
-											if (event.type == 'keyup' && event.keyCode == 27) _OpenMainList(false); 
-											
-											//if a click event happened on a button - this button is that where selected are displayed
-											else if ($this[0].type == "button" || $this.parent()[0].type == "button" || $this.parent().parent()[0].type == "button") _OpenMainList(($container.attr('class').indexOf('open') == -1) ? true : false);
-											
-											//if a click event happened on a menu arrow				
-											else if ($this.is("span") && $this.parent().is("div") || ($this.is("span") && $this.parent().parent().is("li"))) {
-												if ($this.attr('class') == 'glyphicon glyphicon-triangle-bottom menu') _OpenSubList( $this.parent().parent(), true);
-												else if ($this.attr('class') == 'glyphicon glyphicon-triangle-top menu') _OpenSubList( $this.parent().parent(), false);
-											}		
-											
-											//if a click event on a li element
-											else if ($this.is("li") || $this.parent().is("li")) _SetSelected($( $this).closest('li'));
+											.....................
 
 
 										}//END if ($(".multilevel-multiselect-group")[0]) 
@@ -1200,7 +1055,7 @@ CHANGES
 
 	
 	
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\js\system_fields_industries_modal.js
+		ADDED NEW FILE: system_fields_industries_modal.js
 		
 			CODE IN IT: 
 			
@@ -1458,32 +1313,7 @@ CHANGES
 									
 								//HERE COMES THE CONTROLLER PART OF EVENTS	
 								//routing actions depend on event type and element target
-								//if a keyup  event happened on an input field
-								if (e.type == 'keyup' && e.target.localName == 'input') {
-									if (jQuery.inArray(e.keyCode, _GetSpecKeycodes()) == -1 && parent_id > 0) _Action_CheckValueExist($(this));
-								}
-								
-								
-								//if a change event happened on industries_primary select field
-								else if (e.type == 'change' && e.target.name == 'industries_primary')  {
-									_SetButtonsAndInputs(true);							
-									(_CountUnsaved() > 0) 
-											? _Action_ThereAreNotSaved() 
-											: _GetSecondaryTypes();
-								}
-								
-								
-								//if a click event happened on a button
-								else if (e.type == 'click' && e.target.localName == 'button') {
-									var btn_action = $(this).prop('name');
-									_HideMessage();
-									_SetButtonsAndInputs(true);
-									switch (btn_action) {
-										case "add" : _Action_AddSecondaryType(); 	break;																		
-										case "save" : _Action_SaveSecondaryType(); break;
-										case "delete" : _Action_DeleteSecondaryType($(this), $(this).parent().parent().find('input')); break;			
-									}							
-								}//END controll part
+								....................
 
 							}); //END $(".modal-dialog.industry-types").find("button, input[type='text']")
 					}//END if ($(".modal-dialog.industry-types"))
@@ -1498,7 +1328,7 @@ CHANGES
 	
 	
 	
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\views\members\partials\industry_types_option.php
+		ADDED NEW FILE: industry_types_option.php
 		
 			<tr class="industry_type_secondary">
 				<td>
@@ -1512,7 +1342,7 @@ CHANGES
 				
 				
 				
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\views\members\partials\industry_types_dialog.php
+		ADDED NEW FILE: industry_types_dialog.php
 		
 			CODE IN IT: 
 			
@@ -1532,7 +1362,7 @@ CHANGES
 				</div><!-- /.modal-dialog -->			
 
 
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\views\members\partials\industry_types_options.php
+		ADDED NEW FILE: industry_types_options.php
 		
 			CODE IN IT: 
 			
@@ -1592,7 +1422,7 @@ CHANGES
 				<input type="hidden" id="msg_success_change_default" value="<?=lang('system_fields:message:success:change_default')?>" />
 				<input type="hidden" id="msg_are_you_sure_in_change" value="<?=lang('system_fields:message:warning:are_you_sure_in_change')?>" />
 				
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\css\system_fields.css
+		ADDED NEW FILE: system_fields.css
 		
 			ADDED CODE IN IT: 
 			
@@ -1661,7 +1491,7 @@ CHANGES
 				}
 		
 		
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\views\members\partials\industry_types_empty.php
+		ADDED NEW FILE: industry_types_empty.php
 		
 			<tr class="tr-theres-no-added-type">
 				<td colspan="2" style="border: none;">
@@ -1672,7 +1502,7 @@ CHANGES
 			</tr>
 		
 		
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\language\english\system_fields_lang.php
+		ADDED NEW FILE: system_fields_lang.php
 		
 			ADDED CODE IN IT: 
 			
@@ -1721,7 +1551,7 @@ CHANGES
 				
 
 				
-		NEW ADDED FILE: \network-site\addons\default\modules\network_settings\js\sytem_fields.js
+		NEW ADDED FILE: sytem_fields.js
 		
 			ADDED CODE IN IT: 
 		
@@ -1916,102 +1746,17 @@ CHANGES
 									});
 								};
 							var _Action_SaveSecondaryType = function() {
-									if (parent_id > 0)
-									{
-										//save data
-										AJAX.call(ajax_base_url + 'save', {'parent_id' : parent_id, 'data' : _CollectData()}, function (response) 
-										{
-											if (response != false)  {
-												//set ids at the newly created input field
-												new_ids = JSON.parse(response);
-												$.each(new_ids, function(old_id, new_id){
-													modal.find('input[name="' + old_id + '"]').prop('name', new_id);
-												});
-												
-												//Refresh number of children in select list
-												_RefreshNumberOfChildren();
-												
-												//Set message
-												msg = $('#msg_success_save').val();
-												msg_type = 'success';
-											}
-											else {
-												msg = $('#msg_error_action').val();
-												msg_type = 'danger';
-											}		
-											_SetMessage(msg, msg_type);
-										});
-									}
-									else {
-										_SetMessage($('#msg_select_first').val(), 'danger');
-									}
+									..............
 								};
 							var _Action_DeleteSecondaryType = function(el_button, el_input) {
-									if  ($.trim(el_input.val()) != '')
-									{
-										$.confirm({
-											text: $('#msg_confirm_delete').val(),
-											confirm: function() {
-														AJAX.call(ajax_base_url + 'delete', {'option_id' : el_input.prop('name')}, function (response) 
-														{	
-															if (response != false) {
-																if (types == 1) { 
-																	_SetDisplay_NoAddedTr('table-row');
-																}
-																_SetInputFieldsCount(-1);															
-																msg_type = 'success';
-																msg = response;
-																el_button.parent().parent().remove();
-															}
-															else {
-																msg = $('#msg_error_action').val();
-																msg_type = 'danger';
-															}
-															_RefreshNumberOfChildren();
-															_SetMessage(msg, msg_type);
-														});
-													},
-											cancel: function() {
-														_SetButtonsAndInputs(false);
-													}
-										});
-									}
-									else 
-									{
-										el_button.parent().parent().remove();
-										_SetButtonsAndInputs(false);
-									}
+									..............
 								};
 
 								
 							//HERE COMES THE CONTROLLER PART OF EVENTS	
 							//routing actions depend on event type and element target
 							//if a keyup  event happened on an input field
-							if (e.type == 'keyup' && e.target.localName == 'input') {
-								if (jQuery.inArray(e.keyCode, _GetSpecKeycodes()) == -1 && parent_id > 0) _Action_CheckValueExist($(this));
-							}
-							
-							
-							//if a change event happened on industries_primary select field
-							else if (e.type == 'change' && e.target.name == 'industries_primary')  {
-								_SetButtonsAndInputs(true);							
-								(_CountUnsaved() > 0) 
-										? _Action_ThereAreNotSaved() 
-										: _GetSecondaryTypes();
-							}
-							
-							
-							//if a click event happened on a button
-							else if (e.type == 'click' && e.target.localName == 'button') {
-								var btn_action = $(this).prop('name');
-								_HideMessage();
-								_SetButtonsAndInputs(true);
-								switch (btn_action) {
-									case "add" : _Action_AddSecondaryType(); 	break;																		
-									case "save" : _Action_SaveSecondaryType(); break;
-									case "delete" : _Action_DeleteSecondaryType($(this), $(this).parent().parent().find('input')); break;			
-								}							
-							}//END controll part
+							...............
 
 						}); //END $(".modal-dialog.industry-types").find("button, input[type='text']")
 				}//END if ($(".modal-dialog.industry-types"))
@@ -2022,7 +1767,7 @@ CHANGES
 				***********************************/	
 				
 				
-		ADDED NEW FILE: \network-site\addons\default\modules\network_settings\models\system_fields_m.php	
+		ADDED NEW FILE: system_fields_m.php	
 			
 			CODE IN IT: 
 			
@@ -2160,45 +1905,7 @@ CHANGES
 						
 						
 						
-						
-						/*
-						 *	Get question's ids from system_fields table.
-						 *
-						 * @input
-						 *		- $slugs: array/string : if array then can be empty all contains the slugs, if string then just name of the slug
-						 * @return
-						 *		- array: ids / or returns just one id of question if slug is just a string
-						 *
-						*/
-						public function get_question_ids_by_slugs($slugs = array())
-						{
-							$hits = array();
-							
-							if (empty($slugs)) 
-							{
-								$query = $this->db->query("SELECT slug, id FROM " . $this->_table);
-								
-								foreach ($query->result() as $row) $hits[$row->slug] = $row->id;
-							}
-							else if (is_array($slugs) and count($slugs) > 0)
-							{
-								$query = $this->db->query( "SELECT slug, id FROM " . $this->_table . " WHERE slug in (" . implode(",", $slugs) . ")" );
-								
-								foreach ($query->result() as $row) $hits[$row->slug] = $row->id;
-							}
-							else 
-							{
-								$row = $this->db->select('slug, id')
-													->where('slug', $slugs)
-													->get($this->_table)
-													->row();
-								return $row->id;
-							}
-							
-							return $hits;
-						}//END function get_question_ids_by_slugs
-						
-						
+						.....................
 						
 						
 						
